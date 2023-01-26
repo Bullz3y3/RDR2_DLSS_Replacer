@@ -14,4 +14,4 @@ Run it before launching RDR2, it will replace DLSS with your preferred version, 
 6. `RDR2_DLSS_Replacer.exe` can be kept open for as long as you want, it does not exit with the game, so you can launch or exit the game multiple times and it will keep processing.
 
 ## How it works
-It monitors `RDR2.exe` process in task manager and as soon as it finds the process, it immediately replaces the game's DLSS in the game's location and creates backup of original DLSS file. Similarly, when the `RDR.exe` process exits it reverts back DLSS.
+It monitors `RDR2.exe` process in task manager and as soon as it finds the process, it immediately replaces the game's DLSS in the game's location and creates backup of original DLSS file. Similarly, when the `RDR.exe` process exits it reverts back DLSS. Your game location can be anywhere, it will be detected automatically by this app.

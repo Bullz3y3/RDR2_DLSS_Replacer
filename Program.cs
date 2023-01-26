@@ -16,16 +16,19 @@ namespace RDR2_DLSS_Replacer
 
         public const string DLSS_TO_USE = "dlss_to_use.dll";
         public const string DLSS_FILE_TO_REPLACE_IN_RDR2_LOCATION = "nvngx_dlss.dll";
-        public const string DLSS_BACKUP_SUFFIX = "_bu";
+        public const string DLSS_BACKUP_SUFFIX = "_backup";
 
         public const string SEPERATOR = "==========";
 
         public static string rdr2Folder = null;
+        public static string currentFolder = null; //to store dlss backup
 
         public static void Main()
         {
             if (isAdministrator())
             {
+                currentFolder = System.IO.Directory.GetCurrentDirectory();
+
                 ManagementEventWatcher w = null;
                 ManagementEventWatcher w2 = null;
 
@@ -114,7 +117,7 @@ namespace RDR2_DLSS_Replacer
 
                 string source = DLSS_TO_USE;
                 string destination = rdr2Folder + "/" + DLSS_FILE_TO_REPLACE_IN_RDR2_LOCATION;
-                string destinationForBackup = destination + DLSS_BACKUP_SUFFIX;
+                string destinationForBackup = currentFolder + "/" + DLSS_FILE_TO_REPLACE_IN_RDR2_LOCATION  + DLSS_BACKUP_SUFFIX;
 
                 Console.WriteLine("RDR2 Location: {0}", rdr2Folder);
 
