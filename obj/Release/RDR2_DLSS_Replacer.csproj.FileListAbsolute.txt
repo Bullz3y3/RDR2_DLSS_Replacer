@@ -1,7 +1,0 @@
-C:\Users\mehss\Documents\Visual Studio 2022\My Projects\RDR2_DLSS_Replacer\bin\Release\dlss_to_use.dll
-C:\Users\mehss\Documents\Visual Studio 2022\My Projects\RDR2_DLSS_Replacer\bin\Release\RDR2_DLSS_Replacer.exe
-C:\Users\mehss\Documents\Visual Studio 2022\My Projects\RDR2_DLSS_Replacer\obj\Release\RDR2_DLSS_Replacer.csproj.AssemblyReference.cache
-C:\Users\mehss\Documents\Visual Studio 2022\My Projects\RDR2_DLSS_Replacer\obj\Release\RDR2_DLSS_Replacer.csproj.SuggestedBindingRedirects.cache
-C:\Users\mehss\Documents\Visual Studio 2022\My Projects\RDR2_DLSS_Replacer\obj\Release\RDR2_DLSS_Replacer.csproj.CoreCompileInputs.cache
-C:\Users\mehss\Documents\Visual Studio 2022\My Projects\RDR2_DLSS_Replacer\obj\Release\RDR2_DLSS_Replacer.exe
-C:\Users\mehss\Documents\Visual Studio 2022\My Projects\RDR2_DLSS_Replacer\obj\Release\RDR2_DLSS_Replacer.g.resources
