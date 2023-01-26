@@ -87,7 +87,7 @@ namespace RDR2_DLSS_Replacer
 
                     CopyDlssFile(PROCESS_NAME, "stopped");
 
-                    Thread.Sleep(3000);
+                    Thread.Sleep(2000);
                     updateConsole("idle");
                 }
             }
