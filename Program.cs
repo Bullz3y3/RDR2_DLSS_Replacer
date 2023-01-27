@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Management;
 using System.Security.Principal;
+using System.Reflection;
 
 namespace RDR2_DLSS_Replacer
 {
@@ -23,45 +24,66 @@ namespace RDR2_DLSS_Replacer
         public static string rdr2Folder = null;
         public static string currentFolder = null; //to store dlss backup
 
+        public static string rdr2LocationFileForAutoStart = "rdr2_location_for_auto_start.txt"; //to auto launch RDR2 as told from this location
+        public static string rdr2LocationForAutoStart = null; //start rdr2 automatically if this existst
+
         public static void Main()
         {
-            if (isAdministrator())
+            string appGuid = ((GuidAttribute)Assembly.GetExecutingAssembly().GetCustomAttributes(typeof(GuidAttribute), false).GetValue(0)).Value;
+            string mutexId = string.Format("Global\\{{{0}}}", appGuid);
+            using (Mutex mutex = new Mutex(false, mutexId))
             {
-                currentFolder = System.IO.Directory.GetCurrentDirectory();
-
-                ManagementEventWatcher w = null;
-                ManagementEventWatcher w2 = null;
-
-                string processNameComplete = PROCESS_NAME + ".exe";
-                Console.WriteLine("{0}\nRDR2 DLSS Replacer running.\n{1}\n\nDLSS to use: {2} (version: {3})\nListening for process: {4}\n", SEPERATOR, SEPERATOR, DLSS_TO_USE, getDlssVersion(DLSS_TO_USE), processNameComplete);
-
-                updateConsole("idle");
-
-                try
+                if (!mutex.WaitOne(0, false))
                 {
-                    //detect start of apps
-                    w = new ManagementEventWatcher("Select * From Win32_ProcessStartTrace WHERE ProcessName='" + processNameComplete + "'");
-                    w.EventArrived += ProcessStartEventArrived;
-                    w.Start();
-
-                    //detect exit of apps
-                    w2 = new ManagementEventWatcher("Select * From Win32_ProcessStopTrace WHERE ProcessName='" + processNameComplete + "'");
-                    w2.EventArrived += ProcessStopEventArrived;
-                    w2.Start();
-
-                    //Keep it running.
-                    Console.ReadLine();
+                    Console.WriteLine("ERROR: This program is already running. To ensure stability only one instance of this program can be opened.\n");
+                    Console.WriteLine("Press any key to exit.");
+                    Console.ReadKey();
+                    Environment.Exit(0);
                 }
-                finally
+
+                if (isAdministrator())
                 {
-                    w.Stop();
-                    w2.Stop();
+                    currentFolder = Directory.GetCurrentDirectory();
+
+                    ManagementEventWatcher w = null;
+                    ManagementEventWatcher w2 = null;
+
+                    string processNameComplete = PROCESS_NAME + ".exe";
+                    Console.WriteLine("{0}\nRDR2 DLSS Replacer running.\n{1}\n\nDLSS to use: {2} (version: {3})\nListening for process: {4}\n", SEPERATOR, SEPERATOR, DLSS_TO_USE, getDlssVersion(DLSS_TO_USE), processNameComplete);
+
+                    updateConsole("idle");
+
+                    try
+                    {
+                        //detect start of apps
+                        w = new ManagementEventWatcher("Select * From Win32_ProcessStartTrace WHERE ProcessName='" + processNameComplete + "'");
+                        w.EventArrived += ProcessStartEventArrived;
+                        w.Start();
+
+                        //detect exit of apps
+                        w2 = new ManagementEventWatcher("Select * From Win32_ProcessStopTrace WHERE ProcessName='" + processNameComplete + "'");
+                        w2.EventArrived += ProcessStopEventArrived;
+                        w2.Start();
+
+                        //auto start RDR2 if rdr2LocationFileForAutoStart exist and is valid
+                        autoStartRdr2IfEnabled();
+
+                        //Keep it running.
+                        Console.ReadLine();
+                    }
+                    finally
+                    {
+                        w.Stop();
+                        w2.Stop();
+                    }
                 }
-            } else
-            {
-                Console.WriteLine("Open this program with Administrator privileges. It is required as to replace files in RDR2 Folder.\n");
-                Console.WriteLine("Press any key to exit.");
-                Console.ReadKey();
+                else
+                {
+                    Console.WriteLine("ERROR: Open this program with Administrator privileges. It is required as to replace files in RDR2 Folder.\n");
+                    Console.WriteLine("Press any key to exit.");
+                    Console.ReadKey();
+                    Environment.Exit(0);
+                }
             }
         }
 
@@ -70,7 +92,6 @@ namespace RDR2_DLSS_Replacer
             //Execute when RDR2 is launched.
             foreach (PropertyData pd in ev.NewEvent.Properties)
             {
-
                 if (pd.Name == "ProcessName")
                 {
                     updateConsole("started");
@@ -96,6 +117,60 @@ namespace RDR2_DLSS_Replacer
             }
         }
 
+        public static void autoStartRdr2IfEnabled()
+        {
+            if (File.Exists(rdr2LocationFileForAutoStart))
+            {
+                //read file
+                string rdr2LocationS = File.ReadAllText(rdr2LocationFileForAutoStart).Trim();
+                if (!String.IsNullOrEmpty(rdr2LocationS))
+                {
+                    //remove comments (starting with hash) and empty lines from file
+                    string[] rdr2LocationA = File.ReadLines(rdr2LocationFileForAutoStart).Where(line => !line.StartsWith("#") && !String.IsNullOrEmpty(line)).ToArray();
+                    
+                    //read only first
+                    string rdr2Location = rdr2LocationA.FirstOrDefault();
+
+                    if (rdr2Location != null)
+                    {
+                        rdr2Location = rdr2Location.Replace("\"", "");
+                        if (!String.IsNullOrEmpty(rdr2Location))
+                        {
+                            //check if rdr2location exist.
+                            if (File.Exists(rdr2Location))
+                            {
+                                rdr2LocationForAutoStart = rdr2Location;
+                                Console.WriteLine("Auto start location found: {0}\n", rdr2LocationForAutoStart);
+
+                                updateConsole("starting");
+                                startRdr2();
+                            }
+                            else
+                            {
+                                Console.WriteLine("ERROR: `{0}` does not exist.\n", rdr2Location);
+                                Console.WriteLine("- Either delete `{0}` so you can start RDR2 manually, or put correct location in `{1}`\n", rdr2LocationFileForAutoStart, rdr2LocationFileForAutoStart);
+                                Console.WriteLine("Press any key to exit.");
+                                Console.ReadKey();
+                                Environment.Exit(0);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (rdr2LocationForAutoStart == null)
+            {
+                Console.WriteLine("Start your game now.\n");
+            }
+        }
+
+        public static void startRdr2()
+        {
+            var processStartInfo = new ProcessStartInfo(rdr2LocationForAutoStart);
+            processStartInfo.WorkingDirectory = Path.GetDirectoryName(rdr2LocationForAutoStart);
+            var process = Process.Start(processStartInfo);
+        }
+
         public static void CopyDlssFile(string processName, string type)
         {
             try
@@ -119,7 +194,7 @@ namespace RDR2_DLSS_Replacer
                 string destination = rdr2Folder + "/" + DLSS_FILE_TO_REPLACE_IN_RDR2_LOCATION;
                 string destinationForBackup = currentFolder + "/" + DLSS_FILE_TO_REPLACE_IN_RDR2_LOCATION  + DLSS_BACKUP_SUFFIX;
 
-                Console.WriteLine("RDR2 Location: {0}", rdr2Folder);
+                Console.WriteLine("RDR2 Location: {0}\\{1}", rdr2Folder, PROCESS_NAME + ".exe");
 
                 if (type == "started")
                 {
@@ -151,7 +226,13 @@ namespace RDR2_DLSS_Replacer
                 case "idle":
                     {
                         Console.Title = "Idle - RDR2 DLSS Replacer";
-                        Console.WriteLine("{0}\nIdle - Waiting for process to launch\n{1}\n", SEPERATOR, SEPERATOR);
+                        Console.WriteLine("{0}\nIdle - Waiting for process to launch.\n{1}\n", SEPERATOR, SEPERATOR);
+                        break;
+                    }
+                case "starting":
+                    {
+                        Console.Title = "Starting RDR2 - RDR2 DLSS Replacer";
+                        Console.WriteLine("- Starting RDR2...\n");
                         break;
                     }
                 case "started":

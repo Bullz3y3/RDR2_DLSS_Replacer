@@ -1,0 +1,4 @@
+#(Optional)
+#If you want to automatically start RDR2 with this program, you can provide absolute path to RDR2.exe below.
+#Example: (REMOVE hash from beginning)
+#C:\Program Files\Rockstar Games\Red Dead Redemption 2\RDR2.exe
