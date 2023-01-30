@@ -13,7 +13,7 @@ Run it before launching RDR2, it will replace DLSS with your preferred version, 
    - It requires .NET Framework 4.7.2+ installed. [Download from Microsoft.](https://dotnet.microsoft.com/en-us/download/dotnet-framework/thank-you/net472-offline-installer)
 5. `RDR2_DLSS_Replacer.exe` can be kept open for as long as you want, it does not exit with the game, so you can launch or exit the game multiple times and it will keep processing.
 
-_(Optional)_ **Auto launch RDR2** when yo start this app.
+_(Optional)_ **Auto launch RDR2** when you start this app.
    - Open `rdr2_location_for_auto_start.txt`
    - Provide absolute location to RDR2.exe at end of file.
 
