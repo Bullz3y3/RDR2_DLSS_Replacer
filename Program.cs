@@ -8,6 +8,8 @@ using System.Threading;
 using System.Management;
 using System.Security.Principal;
 using System.Reflection;
+using System.Collections.Generic;
+using System.Net;
 
 namespace RDR2_DLSS_Replacer
 {
@@ -15,7 +17,10 @@ namespace RDR2_DLSS_Replacer
     {
         public const string PROCESS_NAME = "RDR2";
 
-        public const string DLSS_TO_USE = "dlss_to_use.dll";
+        public const string DLSS_TO_USE = "nvngx_dlss.dll";
+        public const string DLSS_TO_DOWNLOAD_IF_NOT_FOUND = "https://github.com/Bullz3y3/RDR2_DLSS_Replacer/raw/master/DLSS/nvngx_dlss_2.5.1.0.dll";
+        public const string DLSS_DOWNLOAD_PROGRESS_STRING = "Please wait... downloading: ";
+
         public const string DLSS_FILE_TO_REPLACE_IN_RDR2_LOCATION = "nvngx_dlss.dll";
         public const string DLSS_BACKUP_SUFFIX = "_backup";
 
@@ -25,7 +30,9 @@ namespace RDR2_DLSS_Replacer
         public static string currentFolder = null; //to store dlss backup
 
         public static string rdr2LocationFileForAutoStart = "rdr2_location_for_auto_start.txt"; //to auto launch RDR2 as told from this location
-        public static string rdr2LocationForAutoStart = null; //start rdr2 automatically if this existst
+        public static string rdr2LocationForAutoStart = null; //start rdr2 automatically if this exist
+
+        public static WebClient downloadDlssWebClient = null;
 
         public static void Main()
         {
@@ -38,52 +45,98 @@ namespace RDR2_DLSS_Replacer
                     Console.WriteLine("ERROR: This program is already running. To ensure stability only one instance of this program can be opened.\n");
                     Console.WriteLine("Press any key to exit.");
                     Console.ReadKey();
-                    Environment.Exit(0);
+                    Environment.Exit(1);
                 }
 
                 if (isAdministrator())
                 {
                     currentFolder = Directory.GetCurrentDirectory();
-
-                    ManagementEventWatcher w = null;
-                    ManagementEventWatcher w2 = null;
-
-                    string processNameComplete = PROCESS_NAME + ".exe";
-                    Console.WriteLine("{0}\nRDR2 DLSS Replacer running.\n{1}\n\nDLSS to use: {2} (version: {3})\nListening for process: {4}\n", SEPERATOR, SEPERATOR, DLSS_TO_USE, getDlssVersion(DLSS_TO_USE), processNameComplete);
-
-                    updateConsole("idle");
-
-                    try
-                    {
-                        //detect start of apps
-                        w = new ManagementEventWatcher("Select * From Win32_ProcessStartTrace WHERE ProcessName='" + processNameComplete + "'");
-                        w.EventArrived += ProcessStartEventArrived;
-                        w.Start();
-
-                        //detect exit of apps
-                        w2 = new ManagementEventWatcher("Select * From Win32_ProcessStopTrace WHERE ProcessName='" + processNameComplete + "'");
-                        w2.EventArrived += ProcessStopEventArrived;
-                        w2.Start();
-
-                        //auto start RDR2 if rdr2LocationFileForAutoStart exist and is valid
-                        autoStartRdr2IfEnabled();
-
-                        //Keep it running.
-                        Console.ReadLine();
-                    }
-                    finally
-                    {
-                        w.Stop();
-                        w2.Stop();
-                    }
+                    checkDlssFileExistsOrDownload();
                 }
                 else
                 {
                     Console.WriteLine("ERROR: Open this program with Administrator privileges. It is required as to replace files in RDR2 Folder.\n");
                     Console.WriteLine("Press any key to exit.");
                     Console.ReadKey();
-                    Environment.Exit(0);
+                    Environment.Exit(1);
                 }
+            }
+        }
+
+        public static void checkDlssFileExistsOrDownload()
+        {
+            if (File.Exists(DLSS_TO_USE))
+            {
+                //dlss file exists
+                startProcess();
+            } else
+            {
+                //download dlss file.
+                Console.WriteLine("{0}\nDownloading DLSS file to use\n{1}\n\nDLSS file to use: {2} does not found, so we're downloading from: {3}\n\nIf you want to use your own, you can replace it with your own version.\n", SEPERATOR, SEPERATOR, DLSS_TO_USE, DLSS_TO_DOWNLOAD_IF_NOT_FOUND);
+                Console.Write("\r{0} {1}%", DLSS_DOWNLOAD_PROGRESS_STRING, 0);
+
+                downloadDlssWebClient = new WebClient();
+                downloadDlssWebClient.DownloadProgressChanged += client_DownloadProgressChanged;
+                downloadDlssWebClient.DownloadFileCompleted += client_DownloadFileCompleted;
+
+                string tempFile = DLSS_TO_USE + "_temp";  //download with _temp so if download is corrupted, the process can start again.
+                downloadDlssWebClient.DownloadFileAsync(new Uri(DLSS_TO_DOWNLOAD_IF_NOT_FOUND), tempFile);
+                Console.ReadLine();
+            }
+        }
+
+        public static void client_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e) // NEW
+        {
+            Console.Write("\r{0} {1}%", DLSS_DOWNLOAD_PROGRESS_STRING, e.ProgressPercentage);
+        }
+
+        private static void client_DownloadFileCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e) // This is our new method!
+        {
+            Console.Write("\r{0} {1}", DLSS_DOWNLOAD_PROGRESS_STRING, "Finished");
+            Console.WriteLine("\n");
+            File.Move(DLSS_TO_USE + "_temp", DLSS_TO_USE);
+
+            startProcess();
+        }
+
+        public static void startProcess()
+        {
+            //release webclient memory if not null
+            if (downloadDlssWebClient != null)
+            {
+                downloadDlssWebClient.Dispose();
+            }
+
+            ManagementEventWatcher w = null;
+            ManagementEventWatcher w2 = null;
+
+            string processNameComplete = PROCESS_NAME + ".exe";
+            Console.WriteLine("{0}\nRDR2 DLSS Replacer running.\n{1}\n\nDLSS to use: {2} (version: {3})\nListening for process: {4}\n", SEPERATOR, SEPERATOR, DLSS_TO_USE, getDlssVersion(DLSS_TO_USE), processNameComplete);
+
+            updateConsole("idle");
+
+            try
+            {
+                //detect start of apps
+                w = new ManagementEventWatcher("Select * From Win32_ProcessStartTrace WHERE ProcessName='" + processNameComplete + "'");
+                w.EventArrived += ProcessStartEventArrived;
+                w.Start();
+
+                //detect exit of apps
+                w2 = new ManagementEventWatcher("Select * From Win32_ProcessStopTrace WHERE ProcessName='" + processNameComplete + "'");
+                w2.EventArrived += ProcessStopEventArrived;
+                w2.Start();
+
+                //auto start RDR2 if rdr2LocationFileForAutoStart exist and is valid
+                autoStartRdr2IfEnabled();
+
+                //Keep it running.
+                Console.ReadLine();
+            }
+            finally
+            {
+                w.Stop();
+                w2.Stop();
             }
         }
 
@@ -151,7 +204,7 @@ namespace RDR2_DLSS_Replacer
                                 Console.WriteLine("- Either delete `{0}` so you can start RDR2 manually, or put correct location in `{1}`\n", rdr2LocationFileForAutoStart, rdr2LocationFileForAutoStart);
                                 Console.WriteLine("Press any key to exit.");
                                 Console.ReadKey();
-                                Environment.Exit(0);
+                                Environment.Exit(1);
                             }
                         }
                     }
