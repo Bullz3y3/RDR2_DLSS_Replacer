@@ -6,12 +6,12 @@ Run it before launching RDR2, it will replace DLSS with your preferred version, 
 ## How to use
 1. Download from: https://github.com/Bullz3y3/RDR2_DLSS_Replacer/releases/latest
 2. Extract it.
-3. Notice `dlss_file_to_use.dll` - This is the DLSS file that will be used for RDR2.
-   - Replace it with your own version if you prefer. Currently, I've packed it with: DLSS v2.5.1.0
-4. Run `RDR2_DLSS_Replacer.exe`
+3. Run `RDR2_DLSS_Replacer.exe`
    - It needs Administrator Privileges to replace `nvngx_dlss.dll` in RDR2 directory.
    - It requires .NET Framework 4.7.2+ installed. [Download from Microsoft.](https://dotnet.microsoft.com/en-us/download/dotnet-framework/thank-you/net472-offline-installer)
-5. Start Red Dead Redemption 2 game.
+   - It will download DLSS/nvngx_dlss_2.5.1.0.dll automatically when you run it for the first time. 
+     - (Optional) If you want to use your own preferred DLSS file then paste it in the folder of RDR2_DLSS_Replacer.exe and name it as nvngx_dlss.dll
+4. Start Red Dead Redemption 2 game.
 
 `RDR2_DLSS_Replacer.exe` can be kept open for as long as you want, it does not exit with the game, so you can launch or exit the game multiple times and it will keep processing.
 
