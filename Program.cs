@@ -18,7 +18,7 @@ namespace RDR2_DLSS_Replacer
         public const string PROCESS_NAME = "RDR2";
 
         public const string DLSS_TO_USE = "nvngx_dlss.dll";
-        public const string DLSS_TO_DOWNLOAD_IF_NOT_FOUND = "https://github.com/Bullz3y3/RDR2_DLSS_Replacer/raw/master/DLSS/nvngx_dlss_2.5.1.0.dll";
+        public const string DLSS_TO_DOWNLOAD_IF_NOT_FOUND = "https://github.com/Bullz3y3/RDR2_DLSS_Replacer/raw/master/DLSS/nvngx_dlss_3.5.10.dll";
         public const string DLSS_DOWNLOAD_PROGRESS_STRING = "Please wait... downloading: ";
 
         public const string DLSS_FILE_TO_REPLACE_IN_RDR2_LOCATION = "nvngx_dlss.dll";

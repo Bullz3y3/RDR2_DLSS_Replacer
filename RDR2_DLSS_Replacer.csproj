@@ -72,6 +72,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="DLSS\nvngx_dlss_2.5.1.0.dll" />
+    <Content Include="DLSS\nvngx_dlss_3.5.10.dll" />
     <Content Include="rdr2_location_for_auto_start.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
