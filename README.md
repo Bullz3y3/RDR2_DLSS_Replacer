@@ -9,7 +9,7 @@ Run it before launching RDR2, it will replace DLSS with your preferred version, 
 3. Run `RDR2_DLSS_Replacer.exe`
    - It needs Administrator Privileges to replace `nvngx_dlss.dll` in RDR2 directory.
    - It requires .NET Framework 4.7.2+ installed. [Download from Microsoft.](https://dotnet.microsoft.com/en-us/download/dotnet-framework/thank-you/net472-offline-installer)
-   - It will download DLSS/nvngx_dlss_2.5.1.0.dll automatically when you run it for the first time. 
+   - It will download DLSS/nvngx_dlss_3.5.10.dll automatically when you run it for the first time. 
      - (Optional) If you want to use your own preferred DLSS file then paste it in the folder of RDR2_DLSS_Replacer.exe and name it as nvngx_dlss.dll
 4. Start Red Dead Redemption 2 game.
 
